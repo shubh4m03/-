@@ -1,0 +1,74 @@
+/* ═══════════ STICKER PRELOADER (initial load only) ═══════════ */
+.sl-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;                 /* above everything, incl. the site preloader and floating controls */
+  /* Dark, matching the site (--black #05070D) with a faint blue glow from the accent */
+  background:
+    radial-gradient(1100px 650px at 85% 110%, rgba(96, 165, 250, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 0% -10%, rgba(37, 99, 235, 0.07), transparent 60%),
+    #05070D;
+  touch-action: none;              /* let a finger drag draw the trail instead of scrolling */
+  overflow: hidden;
+  cursor: default;                 /* the site hides the native cursor; keep it visible here */
+  will-change: transform;
+  contain: strict;
+}
+
+.sl-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sl-sticker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(86px, 10.5vw, 168px);
+  height: auto;
+  aspect-ratio: 1;
+  opacity: 0;
+  will-change: transform, opacity;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Bottom-right abstract counter */
+.sl-counter {
+  position: absolute;
+  right: clamp(18px, 3vw, 44px);
+  bottom: clamp(18px, 3vw, 44px);
+  display: flex;
+  gap: 4px;
+  color: rgba(96, 165, 250, 0.6);  /* site accent, softened */
+  will-change: transform, opacity;
+}
+
+.sl-win {
+  width: clamp(30px, 2.9vw, 42px);
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.sl-col {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.sl-glyph {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
+.sl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

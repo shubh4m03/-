@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05070D" />
+  <!-- Apply the saved theme before first paint (prevents a light/dark flash) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('sg-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) { /* storage unavailable */ }
+    })();
+  </script>
+  <!-- The WebGL tubes library (~775 KB) is imported lazily from App.jsx so it never blocks the app/loader -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <title>Shubham Gupta | Offensive Security Portfolio</title>
+  <meta name="description"
+    content="Shubham Gupta — Offensive Security Intern at Macbease, ICSS Campus Ambassador and B.Tech CSE student at LPU. CTF competitor, Python developer and ethical hacker." />
+  <meta name="author" content="Shubham Gupta" />
+  <meta property="og:title" content="Shubham Gupta | Offensive Security Portfolio" />
+  <meta property="og:description"
+    content="Offensive Security Intern at Macbease · ICSS Campus Ambassador · B.Tech CSE @ LPU · CTF competitor." />
+  <meta property="og:type" content="website" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Non-render-blocking font CSS (the loader waits for document.fonts.ready, so no visible swap) -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400&family=Outfit:wght@500;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400&family=Outfit:wght@500;800&display=swap"></noscript>
+</head>
+
+<body>
+  <!-- Static boot screen: shown instantly until the React sticker loader takes over (no dark flash) -->
+  <div id="boot-loader" style="position:fixed;inset:0;z-index:100001;background:#05070D"></div>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
