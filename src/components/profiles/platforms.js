@@ -9,6 +9,10 @@ import { githubClient, leetcodeClient, tryhackmeClient, HANDLES } from './client
 import { buildDays, computeStreaks } from './utils/calendar';
 import { fmt } from './utils/format';
 
+// Large global ranks (e.g. 2,212,571) are shown compactly on the card so they fit the tile on phones;
+// the dashboard shows the full number.
+const compact = (n) => new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(n);
+
 const lastYearStreaks = (counts) => (counts ? computeStreaks(buildDays(counts, 365)) : null);
 
 export const PLATFORMS = [
@@ -49,7 +53,7 @@ export const PLATFORMS = [
       stats: (d) => [
         { label: 'Solved', value: fmt(d.solved.all) },
         { label: 'E · M · H', value: `${d.solved.easy}·${d.solved.medium}·${d.solved.hard}` },
-        { label: 'Ranking', value: d.ranking ? `#${fmt(d.ranking)}` : null },
+        { label: 'Ranking', value: d.ranking ? `#${d.ranking >= 100000 ? compact(d.ranking) : fmt(d.ranking)}` : null },
       ],
     },
   },

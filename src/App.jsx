@@ -10,6 +10,7 @@ import StickerLoader from './components/loader/StickerLoader';
 import ContactForm from './components/ContactForm';
 import HoldButton from './components/HoldButton/HoldButton';
 import ProjectLike from './components/likes/ProjectLike';
+import RepoStar from './components/likes/RepoStar';
 // DEMO: hero background (loaded lazily so it never delays first paint)
 const GhostFibers = lazy(() => import('./components/GhostFibers/GhostFibers'));
 import { Github, Linkedin, Mail, Phone, ExternalLink, Zap, Home, User, Code, Trophy, Briefcase, Play, FileText, Sun, Moon, Lock, Check } from 'lucide-react';
@@ -941,8 +942,24 @@ export default function App() {
       }) : null;
 
       // Individual project card effects (parallax + highlight + entrance)
-      document.querySelectorAll('.project-card-v2').forEach((card) => {
+      const projectCards = document.querySelectorAll('.project-card-v2');
+      projectCards.forEach((card) => {
         const content = card.querySelector('.project-content-v2');
+
+        // Phones/tablets: cards are stacked vertically. A simple fade-up that completes before the card
+        // reaches mid-screen — no blur and no fade-out while it is being read (the shared desktop
+        // timeline left cards blurred while they were already in view on a phone).
+        if (!isDesktop) {
+          card.style.filter = '';
+          gsap.fromTo(card,
+            { opacity: 0.25, y: 48, scale: 0.97 },
+            {
+              opacity: 1, y: 0, scale: 1, ease: 'power2.out',
+              scrollTrigger: { trigger: card, start: 'top 95%', end: 'top 60%', scrub: 0.6 },
+            }
+          );
+          return;
+        }
 
         // ONE TIMELINE TO RULE THEM ALL (Fixes scroll-up glitch + ensures perfect smoothness)
         const cardTl = gsap.timeline({
@@ -1002,6 +1019,9 @@ export default function App() {
         }
       });
       resortAfterRebuild();
+      // The blur is written straight to style.filter (not via GSAP), so clear it when the breakpoint
+      // changes — otherwise a desktop → phone resize could leave a card stuck blurred.
+      return () => projectCards.forEach(card => { card.style.filter = ''; });
     });
 
     // Toggle gallery visibility with discrete events for better performance
@@ -1596,7 +1616,10 @@ export default function App() {
                         </span>
                       </span>
                     )}
-                    <ProjectLike slug={p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')} title={p.title} />
+                    <div className="project-social">
+                      {p.repo && <RepoStar repoUrl={p.repo} title={p.title} />}
+                      <ProjectLike slug={p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')} title={p.title} />
+                    </div>
                   </div>
                 </div>
               </div>

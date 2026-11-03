@@ -1811,12 +1811,126 @@ html.mb-open .music-hint {
 
 /* Project like button (React Bits PulseHeart) */
 .project-actions { align-items: center; flex-wrap: wrap; }
-.project-like { display: inline-flex; margin-left: auto; }
+.project-social { display: inline-flex; align-items: center; gap: 10px; margin-left: auto; }
+.project-like { display: inline-flex; }
 .project-like .pulse-heart__count { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
 @media (max-width: 768px) {
-  .project-like { margin-left: 0; align-self: flex-start; }
+  .project-social { margin-left: 0; align-self: flex-start; }
 }
 
 /* DEMO — GhostFibers hero background: below hero content, above the page background */
 .hero-with-fibers { position: relative; isolation: isolate; }
 .hero-fibers { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+
+/* GitHub star pill (sits next to the like heart; same pill size) */
+.repo-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 35px;
+  padding: 0 14px 0 12px;
+  border-radius: 100px;
+  background: rgba(var(--fg-rgb), 0.06);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.16s ease;
+}
+.repo-star__icon { color: rgba(var(--fg-rgb), 0.55); transition: color 0.2s ease, fill 0.2s ease; }
+.repo-star__count {
+  padding-left: 8px;
+  border-left: 1px solid rgba(var(--fg-rgb), 0.15);
+  font-variant-numeric: tabular-nums;
+}
+.repo-star:hover { background: rgba(var(--fg-rgb), 0.1); }
+.repo-star:hover .repo-star__icon { color: #f5b301; fill: #f5b301; }
+.repo-star:active { transform: scale(0.97); }
+.repo-star:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .repo-star, .repo-star__icon { transition: none; } }
+
+/* ═══════════ LAYOUT POLISH — desktop project spacing + full phone pass ═══════════ */
+
+/* Desktop: the "MY PROJECTS" header sits at the top-left of the pinned section; cards used to be
+   70vh tall and vertically centred, so their top edge ran into the header. Cards now sit in the space
+   below the header (bottom-aligned, height capped to what is left of the viewport). */
+@media (min-width: 1024px) {
+  .project-horizontal-container {
+    align-items: flex-end;
+    padding-bottom: max(4vh, 28px);
+  }
+  .project-card-v2 {
+    height: min(70vh, calc(100vh - 260px));
+    min-height: 380px;
+  }
+  .project-title {
+    font-size: clamp(40px, min(8vw, 10vh), 100px);
+  }
+}
+
+/* Phones & tablets: no empty "NEXT STAGE" slide at the end of the stacked project list */
+@media (max-width: 1023px) {
+  .project-final-slide { display: none; }
+
+  /* Hero stacks vertically (it is a flex row; the bottom bar used to become a 2nd column) */
+  #hero {
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  /* ── Rhythm: tighter section padding (desktop values left whole screens empty on a phone) ── */
+  #hero { padding: 96px 20px 32px !important; }
+  #statement { padding: 96px 20px !important; }
+  #skills, #coding-arena { padding: 96px 20px !important; }
+  #certifications { padding: 88px 20px !important; }
+  #experience { padding: 96px 20px !important; }
+  .exp-title { margin-bottom: 48px !important; }
+  .exp-card a.hover-line,
+  .contact-mail { display: inline-block; padding: 12px 0; }        /* ≥ 40px tap height */
+  #certifications > div:first-child { margin-bottom: 48px !important; }
+  #coding-arena h2 { margin-bottom: 56px !important; }
+  .contact-section { padding: 88px 16px 72px; }
+
+  /* ── Hero ── */
+  .hero-first, .hero-last { font-size: clamp(64px, 23vw, 120px) !important; }
+  .hero-label { margin-bottom: 18px !important; line-height: 1.7; }
+  .hero-sub.font-body { font-size: 16px !important; }
+  .hero-stat-pill { text-align: center; }
+  .hero-bottom { margin-top: 36px; gap: 10px !important; }
+  .hero-bottom a { display: inline-block; padding: 12px 6px; }       /* ≥ 40px tap height */
+  .hero-bottom-email { font-size: 12px !important; }
+
+  /* ── Projects: header in normal flow above the stacked cards ── */
+  .project-sticky-header {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    padding: 88px 20px 0;
+  }
+  .project-horizontal-container { padding: 40px 16px 88px; gap: 28px; }
+  .project-card-v2 { min-height: 0; border-radius: 22px; }
+  .project-content-v2 { padding: 36px 20px 28px; }
+  .project-title { font-size: clamp(38px, 12vw, 56px); margin-bottom: 14px; }
+  .project-description { font-size: 15px; margin-bottom: 22px; }
+  .project-tags { margin-bottom: 24px; gap: 8px; }
+  .project-social { width: 100%; justify-content: center; }
+
+  /* ── Readability: nothing below 10px on a phone ── */
+  .cert-card-premium .font-mono { font-size: 10px !important; }
+  #grand-finale-screen .font-mono,
+  .finale-meta-bar .font-mono { font-size: 10px !important; }
+
+  /* ── Footer ── */
+  .mega-link { display: inline-block; padding: 6px 0; }              /* bigger tap targets */
+  .finale-meta-bar { grid-template-columns: minmax(0, 1fr) !important; justify-items: center; }
+  .finale-nav-bar { gap: 12px !important; padding: 8px 14px !important; max-width: 100%; }
+  .finale-nav-bar > a { display: inline-flex; padding: 4px; }
+}
+
+@media (max-width: 380px) {
+  .finale-nav-bar { gap: 8px !important; padding: 8px 10px !important; }
+  .hero-stat-pill { font-size: 10px !important; padding: 10px 14px !important; }
+}

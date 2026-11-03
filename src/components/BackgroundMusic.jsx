@@ -21,6 +21,25 @@ const BackgroundMusic = ({ revealed = true }) => {
     const startingRef = useRef(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    // The hint only shows near the top of the page, so it never sits on top of content further down
+    const [nearTop, setNearTop] = useState(true);
+
+    useEffect(() => {
+        if (isPlaying) return undefined;
+        let raf = 0;
+        const check = () => {
+            raf = 0;
+            const next = window.scrollY < window.innerHeight * 0.5;
+            setNearTop(prev => (prev === next ? prev : next));
+        };
+        const onScroll = () => { if (!raf) raf = requestAnimationFrame(check); };
+        check();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            cancelAnimationFrame(raf);
+        };
+    }, [isPlaying]);
 
     const fadeIn = useCallback(() => {
         const audio = audioRef.current;
@@ -96,7 +115,7 @@ const BackgroundMusic = ({ revealed = true }) => {
         setIsMuted(nextMuted);
     };
 
-    const showHint = revealed && !isPlaying;
+    const showHint = revealed && !isPlaying && nearTop;
 
     return (
         <>

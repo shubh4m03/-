@@ -1259,3 +1259,16 @@ html.mb-open .music-control-btn {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* Stat tiles may shrink (plain 1fr columns grew to fit long values and spilled out of the card) */
+.pc-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 768px) {
+  .pc-id { flex: 1; }
+  .pc-id h3 { font-size: clamp(20px, 6vw, 26px); }
+  .pc-live { padding: 4px 8px; letter-spacing: 0.12em; flex-shrink: 0; }
+  .pc-stats { gap: 6px; }
+  .pc-stat { padding: 12px 8px 10px; }
+  .pc-stat-value { font-size: clamp(16px, 4.4vw, 24px); }
+  .pc-stat-label { font-size: 10px; letter-spacing: 0.06em; }
+}
