@@ -58,7 +58,7 @@ export async function settle(promises) {
   return results.map(r => (r.status === 'fulfilled' ? r.value : null));
 }
 
-const CACHE_PREFIX = 'sg-profile-cache:v2:';
+const CACHE_PREFIX = 'sg-profile-cache:v3:';
 const FAIL_PREFIX = 'sg-profile-fail:v3:';
 const inFlight = new Map();
 

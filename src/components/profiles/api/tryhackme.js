@@ -8,6 +8,13 @@
 // labelled as a snapshot with its date (see ../data/tryhackme-snapshot.js). Nothing is estimated.
 import { ApiError, cached, fetchJSON } from './http';
 import { TRYHACKME_SNAPSHOT } from '../data/tryhackme-snapshot';
+// Daily activity exported from the user's own TryHackMe profile (scripts/import-thm-activity.mjs).
+// Empty until imported — the graph is only drawn from real exported data, never estimated.
+import THM_ACTIVITY from '../data/tryhackme-activity.json';
+
+const activityCalendar = () => (THM_ACTIVITY?.counts && Object.keys(THM_ACTIVITY.counts).length
+  ? { counts: THM_ACTIVITY.counts, asOf: THM_ACTIVITY.asOf }
+  : null);
 
 const TTL = 30 * 60 * 1000;
 
@@ -32,7 +39,7 @@ function normalize(res) {
     longestStreak: d.largestStreak ?? null,
     league: d.leagueTier ?? null,
     capability: d.capabilityScore?.value ?? null,
-    calendar: null,                            // no public daily-activity endpoint
+    calendar: activityCalendar(),              // no CORS-readable daily-activity endpoint → exported copy
     meta: { sources: ['tryhackme.com'] },
   };
 }
@@ -41,7 +48,7 @@ function fromSnapshot(reason) {
   const { asOf, ...stats } = TRYHACKME_SNAPSHOT;
   return {
     ...stats,
-    calendar: null,
+    calendar: activityCalendar(),
     meta: { sources: ['profile snapshot'], snapshot: true, asOf, reason },
   };
 }

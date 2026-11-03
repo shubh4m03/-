@@ -63,8 +63,8 @@ export const PLATFORMS = [
     client: tryhackmeClient,
     Dashboard: TryHackMeDashboard,
     card: {
-      unit: 'room',
-      days: () => null,
+      unit: 'event',
+      days: (d) => (d.calendar ? buildDays(d.calendar.counts, 365) : null),
       noGraphText: (d) => (d.yearlyEvents
         ? `${fmt(d.yearlyEvents)} events in the last year${d.meta?.snapshot ? ` · snapshot ${d.meta.asOf}` : ''}`
         : 'TryHackMe has no public activity calendar'),

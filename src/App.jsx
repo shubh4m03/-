@@ -7,6 +7,7 @@ import GallerySection from './components/GallerySection';
 import BackgroundMusic from './components/BackgroundMusic';
 import CodingProfiles from './components/profiles/CodingProfiles';
 import StickerLoader from './components/loader/StickerLoader';
+import ContactForm from './components/ContactForm';
 import { Github, Linkedin, Mail, Phone, ExternalLink, Zap, Home, User, Code, Trophy, Briefcase, Play, FileText, Sun, Moon, Lock } from 'lucide-react';
 import shiftpinSnap from './assets/projects/shiftpin.svg';
 import prepgenieSnap from './assets/projects/prepgenie.svg';
@@ -134,7 +135,7 @@ const CERTS_DATA = [
 
 const TECH_MARQUEE = ['PYTHON', 'BASH', 'NMAP', 'WIRESHARK', 'BURP SUITE', 'NETCAT', 'DIRB', 'LINUX', 'OSINT', 'MYSQL', 'REACT', 'CTF'];
 
-const SECTIONS = ['hero', 'statement', 'about', 'experience', 'projects', 'gallery', 'skills', 'coding-arena', 'certifications'];
+const SECTIONS = ['hero', 'statement', 'about', 'experience', 'projects', 'gallery', 'skills', 'coding-arena', 'certifications', 'contact'];
 
 // Darker text versions of the item colours for the light (white) theme — keeps small text AA-readable
 const LIGHT_TEXT_TONES = {
@@ -1788,6 +1789,27 @@ export default function App() {
           </div>
         </section >
 
+        {/* ═══════════ CONTACT — message form ═══════════ */}
+        <section id="contact" className="contact-section">
+          <div className="section-watermark" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>PING</div>
+          <div className="contact-inner">
+            <div className="contact-intro">
+              <span className="font-mono" style={{ fontSize: 11, letterSpacing: '0.3em', color: 'var(--accent)', textTransform: 'uppercase' }}>
+                05 / GET IN TOUCH
+              </span>
+              <h2 className="font-display contact-title">
+                SEND A<br />
+                <span className="text-outline-accent">MESSAGE</span>
+              </h2>
+              <p className="font-mono contact-copy">
+                Pentest work, internships, CTF teams or just a hello — drop a message and it lands straight in my inbox.
+              </p>
+              <a href={`mailto:${PERSONAL.email}`} className="hover-line font-mono contact-mail">{PERSONAL.email}</a>
+            </div>
+            <ContactForm fallbackEmail={PERSONAL.email} />
+          </div>
+        </section>
+
         {/* ═══════════ THE GRAND FINALE — FLOATING SCREEN FOOTER ═══════════ */}
         < section id="grand-finale-outer" style={{ background: 'var(--black)', padding: '40px 20px 20px', position: 'relative', zIndex: 100 }
         }>
@@ -1919,7 +1941,7 @@ export default function App() {
                 <a href="#certifications" onClick={onAnchorClick('certifications')} aria-label="Certifications" title="Certifications" style={{ color: 'inherit' }}><Trophy size={16} /></a>
                 <a href="#experience" onClick={onAnchorClick('experience')} aria-label="Experience" title="Experience" style={{ color: 'inherit' }}><Briefcase size={16} /></a>
                 <a href="#projects" onClick={onAnchorClick('projects')} aria-label="Projects" title="Projects" style={{ color: 'inherit' }}><Play size={16} /></a>
-                <a href={`mailto:${PERSONAL.email}`} aria-label="Email" title="Email" style={{ color: 'inherit' }}><Mail size={16} /></a>
+                <a href="#contact" onClick={onAnchorClick('contact')} aria-label="Contact" title="Contact" style={{ color: 'inherit' }}><Mail size={16} /></a>
                 <a href="#coding-arena" onClick={onAnchorClick('coding-arena')} aria-label="Hacking profiles" title="Hacking profiles" className="nav-circle" style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--accent)', color: 'var(--on-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 5px 15px rgba(var(--accent-rgb), 0.3)', textDecoration: 'none' }}>
                   <Zap size={18} color="currentColor" fill="currentColor" />
                 </a>

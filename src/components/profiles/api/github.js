@@ -109,9 +109,38 @@ async function loadEvents(user) {
   }));
 }
 
+// Fallback copies of github.com's contribution calendar, regenerated every 6 h by
+// .github/workflows/contributions.yml (scripts/fetch-github-contributions.mjs). Used when the live
+// calendar API is unreachable (some ISPs reset connections to it).
+const SYNCED_CALENDAR = {
+  shubh4m03: [
+    // Same-origin copy first: always reachable (raw.githubusercontent.com is blocked by some ISPs too)
+    { name: 'synced (site)', url: `${import.meta.env.BASE_URL}data/github-contributions.json` },
+    { name: 'synced (github raw)', url: 'https://raw.githubusercontent.com/shubh4m03/-/main/public/data/github-contributions.json' },
+  ],
+};
+
+async function loadCalendarRaw(user) {
+  const sources = [
+    { name: 'jogruber', url: `https://github-contributions-api.jogruber.de/v4/${user}`, timeout: 6000 },
+    ...(SYNCED_CALENDAR[user] || []),
+  ];
+  const errors = [];
+  for (const s of sources) {
+    try {
+      const res = await fetchJSON(s.url, { source: s.name, timeout: s.timeout ?? 10000 });
+      if (!Array.isArray(res?.contributions) || !res.contributions.length) throw new Error('empty calendar');
+      return { res, source: s.name, generatedAt: res.generatedAt || null };
+    } catch (err) {
+      errors.push(`${s.name}: ${err.message}`);
+    }
+  }
+  throw new Error(`Calendar unavailable (${errors.join(' · ')})`);
+}
+
 async function loadCalendar(user) {
   // All years in one call: gives last-year window, per-year totals and lifetime streaks.
-  const res = await fetchJSON(`https://github-contributions-api.jogruber.de/v4/${user}`, { source: 'jogruber' });
+  const { res, source, generatedAt } = await loadCalendarRaw(user);
   const today = new Date().toISOString().slice(0, 10);
   const counts = {};
   for (const d of res.contributions || []) {
@@ -121,7 +150,7 @@ async function loadCalendar(user) {
     .map(([year, total]) => ({ year: Number(year), total }))
     .filter(y => Number.isFinite(y.year))
     .sort((a, b) => b.year - a.year);
-  return { counts, byYear };
+  return { counts, byYear, source, generatedAt };
 }
 
 export function createGitHubClient(user) {
@@ -155,7 +184,7 @@ export function createGitHubClient(user) {
         events,                      // null when the events API is unavailable
         calendar,                    // null when the calendar source is unavailable
         meta: {
-          sources: [...new Set([profileRes?.source, reposRes?.source, events ? 'api.github.com' : null, calendar ? 'jogruber' : null].filter(Boolean))],
+          sources: [...new Set([profileRes?.source, reposRes?.source, events ? 'api.github.com' : null, calendar?.source].filter(Boolean))],
         },
       };
     }, { force }),

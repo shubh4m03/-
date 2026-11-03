@@ -3,6 +3,8 @@ import useProfileData from '../hooks/useProfileData';
 import useDashboardSync from '../hooks/useDashboardSync';
 import { Notice, Panel, Skeleton, StatTile } from '../ui';
 import { fmt } from '../utils/format';
+import ActivityGraph from '../ActivityGraph';
+import { buildDays } from '../utils/calendar';
 import { tryhackmeClient, HANDLES } from '../clients';
 import thmLogo from '../../../assets/logos/tryhackme.svg';
 
@@ -89,8 +91,15 @@ export default function TryHackMeDashboard({ reloadToken, onStatus }) {
           official API on every visit and switches to live data automatically if TryHackMe allows it.
         </Notice>
       )}
-      <Panel kicker="Activity" title="Daily activity">
-        <Notice>TryHackMe does not expose its daily-activity calendar through a public API, so no heatmap is drawn here.</Notice>
+      <Panel kicker="Activity" title={data.calendar ? 'Last 12 months' : 'Daily activity'}>
+        {data.calendar ? (
+          <>
+            <ActivityGraph days={buildDays(data.calendar.counts, 365)} color={ACCENT} unit="event" variant="full" />
+            {data.calendar.asOf && <div className="pd-foot font-mono" style={{ marginTop: 10 }}>Exported from the TryHackMe profile on {data.calendar.asOf}</div>}
+          </>
+        ) : (
+          <Notice>TryHackMe does not expose its daily-activity calendar through a public API, so no heatmap is drawn here.</Notice>
+        )}
       </Panel>
       <div className="pd-foot font-mono">Data: {snap ? `tryhackme.com/p/${p.username} · snapshot ${snap}` : 'tryhackme.com (official API)'}</div>
     </div>
