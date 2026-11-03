@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { GitBranch, Star, GitFork } from 'lucide-react';
-import ActivityGraph from '../ActivityGraph';
+import ContributionSkyline from '../../ContributionSkyline/ContributionSkyline';
 import YearTabs from '../YearTabs';
 import useProfileData from '../hooks/useProfileData';
 import useDashboardSync from '../hooks/useDashboardSync';
 import { ErrorState, Notice, Panel, Skeleton, StatTile } from '../ui';
-import { allTimeDays, computeStreaks, daysForView, formatDay } from '../utils/calendar';
+import { allTimeDays, computeStreaks, daysForView, todayKeyUTC } from '../utils/calendar';
 import { fmt, LANG_COLORS, timeAgo } from '../utils/format';
 import { githubClient } from '../clients';
 
@@ -18,7 +18,13 @@ export default function GitHubDashboard({ reloadToken, onStatus }) {
   const [view, setView] = useState('last');
 
   const counts = data?.calendar?.counts;
-  const days = useMemo(() => (counts ? daysForView(counts, view) : null), [counts, view]);
+  // Real contribution days for the skyline (never the component's generated demo year)
+  const skylineData = useMemo(
+    () => (counts ? Object.entries(counts).map(([date, count]) => ({ date, count })) : null),
+    [counts],
+  );
+  const today = todayKeyUTC();
+  const skylineEnd = view === 'last' ? today : (`${view}-12-31` > today ? today : `${view}-12-31`);
   const lastYear = useMemo(() => (counts ? computeStreaks(daysForView(counts, 'last')) : null), [counts]);
   const lifetime = useMemo(() => (counts ? computeStreaks(allTimeDays(counts)) : null), [counts]);
 
@@ -59,13 +65,17 @@ export default function GitHubDashboard({ reloadToken, onStatus }) {
         title={view === 'last' ? 'Last 12 months' : `${view}`}
         aside={views.length > 1 && <YearTabs views={views} value={view} onChange={setView} />}
       >
-        {days ? <ActivityGraph days={days} color={ACCENT} unit="contribution" variant="full" />
-          : <Notice>The contribution calendar source is unavailable right now. Try reloading.</Notice>}
-        {lastYear?.bestDay && view === 'last' && (
-          <div className="pd-foot font-mono" style={{ marginTop: 10 }}>
-            Best day: {lastYear.bestDay.count} contributions on {formatDay(lastYear.bestDay.date)}
-          </div>
-        )}
+        {skylineData ? (
+          <ContributionSkyline
+            className="cs-embedded"
+            data={skylineData}
+            endDate={skylineEnd}
+            palette="portfolio"
+            title={view === 'last' ? undefined : (
+              <><span className="cs-strong">{fmt(calendar?.byYear?.find(y => y.year === view)?.total ?? 0)}</span> contributions in {view}</>
+            )}
+          />
+        ) : <Notice>The contribution calendar source is unavailable right now. Try reloading.</Notice>}
       </Panel>
 
       <div className="pd-two">

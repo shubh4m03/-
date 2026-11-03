@@ -1,0 +1,200 @@
+/* Contribution Skyline — plain-CSS port of the original Tailwind classes, wired to the site's tokens.
+   The canvas engine reads this root's computed `color` and `background-color` to pick its light/dark
+   palette, so the root must have a solid background. */
+.cs-root {
+  --cs-border: rgba(var(--fg-rgb), 0.1);
+  --cs-muted: rgba(var(--fg-rgb), 0.55);
+  position: relative;
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--cs-border);
+  background: var(--card-2);
+  color: var(--white);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.cs-header {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.cs-title { margin: 0; font-size: 13px; font-weight: 400; line-height: 1.4; }
+.cs-strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* 2D / 3D segmented toggle */
+.cs-toggle {
+  position: relative;
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--cs-border);
+  border-radius: 8px;
+}
+.cs-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: 32px;
+  border-radius: 6px;
+  background: var(--white);
+  transition: transform 500ms;
+}
+.cs-toggle-btn {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--cs-muted);
+  transition: color 500ms;
+}
+.cs-toggle-btn.is-on { color: var(--card-2); }
+.cs-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cs-toggle-btn svg { display: block; max-width: none; }
+
+/* Chart frame */
+.cs-frame { position: relative; border: 1px solid var(--cs-border); border-radius: 10px; }
+.cs-frame-inner { position: relative; padding: 12px 12px 0; }
+.cs-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.cs-stage:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 4px; }
+.cs-canvas { position: absolute; top: 0; left: 0; display: block; max-width: none; outline: none; }
+
+/* Stats that float in the corners of the 3D view */
+.cs-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  pointer-events: none;
+  transition-property: opacity, transform;
+}
+.cs-corner--tr { top: 4px; right: 4px; align-items: flex-end; }
+.cs-corner--bl { bottom: 4px; left: 4px; align-items: flex-start; }
+
+.cs-stat--corner { display: grid; grid-template-columns: auto auto; align-items: end; column-gap: 8px; }
+.cs-stat--stack { min-width: 0; }
+.cs-stat-label { font-size: 11px; line-height: 1.3; color: var(--cs-muted); letter-spacing: 0.04em; }
+.cs-stat-row { margin-top: 4px; display: flex; align-items: baseline; gap: 6px; }
+.cs-stat-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  transition: color 500ms;
+}
+.cs-stat-unit { font-size: 12px; }
+.cs-stat-unit--lg { font-size: 13px; }
+.cs-stat-unitwrap { padding-bottom: 0.15em; line-height: 1.3; }
+.cs-stat-sub { margin-top: 2px; font-size: 11px; color: var(--cs-muted); }
+.cs-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Tooltip */
+.cs-tip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  padding: 7px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1;
+  background: var(--white);
+  color: var(--card-2);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.cs-tip-arrow {
+  position: absolute;
+  top: 100%;
+  left: var(--arrow, 50%);
+  width: 0;
+  height: 0;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: var(--white);
+}
+
+/* Stats row (flat view, or any view on narrow widths) */
+.cs-stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin-top: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--cs-border);
+}
+
+/* Footer: hint + legend */
+.cs-footer {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  font-size: 11px;
+  color: var(--cs-muted);
+}
+.cs-legend { display: inline-flex; align-items: center; gap: 4px; }
+.cs-legend > span { margin: 0 4px; }
+.cs-swatch {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  transition: transform 150ms, box-shadow 150ms;
+}
+.cs-swatch.is-on,
+.cs-swatch:focus-visible {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 1.5px var(--white);
+  outline: none;
+}
+
+.cs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .cs-root { padding: 20px; }
+  .cs-frame-inner { padding: 16px 16px 0; }
+  .cs-tip { top: 16px; left: 16px; }
+  .cs-stats-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-toggle-thumb, .cs-toggle-btn, .cs-corner, .cs-stat-value, .cs-tip, .cs-swatch { transition: none; }
+}
+
+/* Embedded inside an existing panel (e.g. the GitHub dashboard): no second card chrome.
+   Transparent background → the engine falls back to a dark base when the text colour is light. */
+.cs-root.cs-embedded { padding: 0; border: 0; border-radius: 0; background: transparent; }
+
+/* Phones: give the chart as much width as possible */
+@media (max-width: 480px) {
+  .pd-panel:has(.cs-root) { padding: 14px 10px; }
+  .cs-frame-inner { padding: 8px 8px 0; }
+  .cs-stats-row { padding: 10px 8px; gap: 12px; }
+}
