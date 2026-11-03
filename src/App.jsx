@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from '@studio-freight/lenis';
@@ -8,7 +8,11 @@ import BackgroundMusic from './components/BackgroundMusic';
 import CodingProfiles from './components/profiles/CodingProfiles';
 import StickerLoader from './components/loader/StickerLoader';
 import ContactForm from './components/ContactForm';
-import { Github, Linkedin, Mail, Phone, ExternalLink, Zap, Home, User, Code, Trophy, Briefcase, Play, FileText, Sun, Moon, Lock } from 'lucide-react';
+import HoldButton from './components/HoldButton/HoldButton';
+import ProjectLike from './components/likes/ProjectLike';
+// DEMO: hero background (loaded lazily so it never delays first paint)
+const GhostFibers = lazy(() => import('./components/GhostFibers/GhostFibers'));
+import { Github, Linkedin, Mail, Phone, ExternalLink, Zap, Home, User, Code, Trophy, Briefcase, Play, FileText, Sun, Moon, Lock, Check } from 'lucide-react';
 import shiftpinSnap from './assets/projects/shiftpin.svg';
 import prepgenieSnap from './assets/projects/prepgenie.svg';
 import airlineSnap from './assets/projects/airline.svg';
@@ -44,6 +48,16 @@ const PERSONAL = {
 };
 
 const RESUME_DOWNLOAD_NAME = 'Shubham_Gupta_CV.pdf';
+
+// Triggers the CV download (used by the hold-to-download button in the footer)
+function downloadResume() {
+  const a = document.createElement('a');
+  a.href = resumeFile;
+  a.download = RESUME_DOWNLOAD_NAME;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
 
 const EXPERIENCE = [
   {
@@ -1158,7 +1172,26 @@ export default function App() {
         </nav>
 
         {/* ═══════════ SCENE 01 — HERO ═══════════ */}
-        <section ref={heroRef} id="hero" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 48px 48px' }}>
+        <section ref={heroRef} id="hero" className="hero-with-fibers" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 48px 48px' }}>
+          {/* DEMO — GhostFibers background (React Bits) */}
+          <div className="hero-fibers" aria-hidden="true">
+            <Suspense fallback={null}>
+              <GhostFibers
+                glowColor="#3b82f6"
+                layers={3}
+                twist={1.2}
+                threads={72}
+                fiberStyle="dots"
+                depthOfField={0.85}
+                hoverEffect="focus"
+                intro={true}
+                mouseInteraction={true}
+                lineColor="#3b82f6"
+                secondaryColor="#3b82f6"
+                lightMode={theme === 'light'}
+              />
+            </Suspense>
+          </div>
           <div className="section-watermark" style={{ top: '10%', right: '-5%' }}>01</div>
 
           {/* Corner LeetCode Grids (lightweight) */}
@@ -1277,10 +1310,6 @@ export default function App() {
               alignItems: window.innerWidth < 1024 ? 'center' : 'flex-end',
               gap: 16
             }}>
-              {/* SG watermark */}
-              <div className="text-outline-accent font-body" style={{ fontSize: 'clamp(80px, 10vw, 160px)', fontWeight: 800, opacity: 0.1, letterSpacing: '0.1em' }}>
-                SG
-              </div>
               {/* Stat pills */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
                 {[
@@ -1567,6 +1596,7 @@ export default function App() {
                         </span>
                       </span>
                     )}
+                    <ProjectLike slug={p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')} title={p.title} />
                   </div>
                 </div>
               </div>
@@ -1841,13 +1871,30 @@ export default function App() {
 
               <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
                 <span className="font-mono" style={{ color: 'var(--black)', opacity: 0.4, fontSize: 9, letterSpacing: '0.2em' }}>OFFENSIVE SECURITY</span>
-                <a href={resumeFile} download={RESUME_DOWNLOAD_NAME} className="resume-btn font-mono" style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px',
-                  background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
-                  borderRadius: '100px', color: 'var(--black)', textDecoration: 'none', fontSize: 10, fontWeight: 700
-                }}>
-                  <FileText size={14} /> DOWNLOAD RESUME <span style={{ opacity: 0.3 }}>↗</span>
-                </a>
+                <HoldButton
+                  className="resume-hold font-mono"
+                  ariaLabel="Download CV (press and hold)"
+                  icon={<FileText size={14} />}
+                  doneIcon={<Check size={14} />}
+                  doneLabel="DOWNLOADING"
+                  backgroundColor="var(--black)"
+                  fillColor="var(--white)"
+                  textColor="var(--white)"
+                  fillTextColor="var(--black)"
+                  size="sm"
+                  radius={100}
+                  fillDirection="right"
+                  holdTime={1200}
+                  releaseTime={200}
+                  pressScale={0.97}
+                  wave
+                  waveAmplitude={6}
+                  glow
+                  resetAfter={1600}
+                  onHold={downloadResume}
+                >
+                  HOLD TO DOWNLOAD CV
+                </HoldButton>
               </div>
             </div>
 

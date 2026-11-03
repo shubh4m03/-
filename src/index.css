@@ -1800,3 +1800,23 @@ html.mb-open .music-hint {
 :root[data-theme='light'] .cf-bad { color: #dc2626; }
 :root[data-theme='light'] .cf-field--invalid input,
 :root[data-theme='light'] .cf-field--invalid textarea { border-color: #dc2626; }
+
+/* Hold-to-download CV button (React Bits HoldButton) — site typography */
+.resume-hold {
+  font-size: 10px !important;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.resume-hold .hold-button__label > span { gap: 10px; }
+
+/* Project like button (React Bits PulseHeart) */
+.project-actions { align-items: center; flex-wrap: wrap; }
+.project-like { display: inline-flex; margin-left: auto; }
+.project-like .pulse-heart__count { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+@media (max-width: 768px) {
+  .project-like { margin-left: 0; align-self: flex-start; }
+}
+
+/* DEMO — GhostFibers hero background: below hero content, above the page background */
+.hero-with-fibers { position: relative; isolation: isolate; }
+.hero-fibers { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
