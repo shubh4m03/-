@@ -1722,7 +1722,8 @@ html.mb-open .music-hint {
   cursor: text !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
-.cf-field textarea { resize: vertical; min-height: 150px; max-height: 420px; line-height: 1.6; }
+/* resize: none — the native resize grip forced a ~70 ms GPU raster as the form scrolled into view */
+.cf-field textarea { resize: none; min-height: 150px; line-height: 1.6; }
 .cf-field input::placeholder,
 .cf-field textarea::placeholder { color: rgba(var(--fg-rgb), 0.25); }
 .cf-field input:focus,
@@ -1934,3 +1935,38 @@ html.mb-open .music-hint {
   .finale-nav-bar { gap: 8px !important; padding: 8px 10px !important; }
   .hero-stat-pill { font-size: 10px !important; padding: 10px 14px !important; }
 }
+
+/* PERF: watermarks are moved by a scrubbed GSAP parallax on every scroll frame. On their own layer the
+   move is a compositor transform instead of repainting each section's giant outlined text. */
+.section-watermark { will-change: transform; }
+
+/* PERF — blurred project backdrops: blur a quarter-size copy, then scale it 4× on the compositor.
+   Same look as blur(30px)/blur(10px) on the full-size image, ~1/16 of the GPU raster work. */
+.torch-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 25%;
+  object-fit: cover;
+  transform: scale(4);
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.torch-img--bg { filter: blur(7.5px) brightness(0.2); opacity: 0.35; }
+.torch-img--reveal { filter: blur(2.5px) brightness(0.75); }
+
+/* PERF — soft shadow under the footer raven: a gradient, not a 40px drop-shadow over the whole image */
+.raven-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -2%;
+  height: 22%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0));
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* PERF — the contact card's 80px shadow was one of the costlier tiles to rasterize; tighter, same feel */
+.cf { box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.45); }

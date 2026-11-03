@@ -197,10 +197,37 @@ const FooterClock = () => {
   return <>{time.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false })}</>;
 };
 
+// Perf: both raven frames are decoded ahead of time (idle, after load) and stacked; the swap is an
+// opacity flip, so it never triggers an image decode mid-scroll (previously two ~30 ms decodes stalled
+// the GPU when the footer scrolled in). The 2 s glitch loop only runs while the footer is on screen.
 const FooterPortrait = ({ face1, face2 }) => {
   const [index, setIndex] = useState(0);
   const [glitch, setGlitch] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const wrapRef = useRef(null);
+
   useEffect(() => {
+    const decode = () => [face1, face2].forEach((src) => {
+      const im = new Image();
+      im.decoding = 'async';
+      im.src = src;
+      im.decode?.().catch(() => { /* decoded on demand instead */ });
+    });
+    const useIdle = typeof window.requestIdleCallback === 'function';
+    const id = useIdle ? window.requestIdleCallback(decode, { timeout: 4000 }) : setTimeout(decode, 2500);
+    return () => (useIdle ? window.cancelIdleCallback(id) : clearTimeout(id));
+  }, [face1, face2]);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || !('IntersectionObserver' in window)) { setVisible(true); return undefined; }
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return undefined;
     const timeouts = new Set();
     const later = (fn, ms) => {
       const id = setTimeout(() => { timeouts.delete(id); fn(); }, ms);
@@ -216,25 +243,38 @@ const FooterPortrait = ({ face1, face2 }) => {
     return () => {
       clearInterval(inter);
       timeouts.forEach(clearTimeout);
+      setGlitch(false);
     };
-  }, []);
+  }, [visible]);
 
+  const imgStyle = {
+    height: 'auto',
+    maxHeight: '82vh',
+    width: '100%',
+    objectFit: 'contain',
+    verticalAlign: 'bottom',
+    display: 'block',
+  };
   return (
-    <img
-      src={index === 0 ? face1 : face2}
-      alt="Raven — Shubham Gupta's emblem"
-      draggable={false}
-      className={glitch ? "footer-glitch-active" : ""}
-      style={{
-        height: 'auto',
-        maxHeight: '82vh',
-        width: '140%',
-        objectFit: 'contain',
-        filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.2))',
-        verticalAlign: 'bottom',
-        willChange: 'transform, filter'
-      }}
-    />
+    <div
+      ref={wrapRef}
+      className={glitch ? 'footer-glitch-active' : ''}
+      style={{ position: 'relative', width: '140%', display: 'grid', willChange: 'transform, filter' }}
+    >
+      {/* soft shadow under the raven — a gradient instead of a 40px drop-shadow blur over the whole image */}
+      <div aria-hidden="true" className="raven-shadow" />
+      {[face1, face2].map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={i === 0 ? "Raven — Shubham Gupta's emblem" : ''}
+          aria-hidden={i === 1 ? 'true' : undefined}
+          draggable={false}
+          decoding="async"
+          style={{ ...imgStyle, gridArea: '1 / 1', position: 'relative', zIndex: 1, opacity: index === i ? 1 : 0 }}
+        />
+      ))}
+    </div>
   );
 };
 
@@ -564,7 +604,8 @@ export default function App() {
       if (tubesInited.current) return;
       tubesInited.current = true;
 
-      const targetPr = Math.min(window.devicePixelRatio || 1, 2);
+      // 1.5× is visually identical for the soft, bloomed tubes and draws ~44% fewer pixels than 2×
+      const targetPr = Math.min(window.devicePixelRatio || 1, 1.5);
       // Lazy-load the WebGL library (previously a static import that blocked the whole app bundle)
       let tubesLoadFailed = false;
       if (!window.TubesCursor) {
@@ -595,6 +636,24 @@ export default function App() {
             }
           });
           tubesAppRef.current = instance;
+
+          // Perf: the library re-renders the whole tube scene on every display frame (~5 ms of JS per
+          // frame; 120×/s on high-refresh screens). Its loop goes through renderer.setAnimationLoop, so
+          // wrap that: cap at 60 fps, and 30 fps once the pointer has been still for 3 s (it resumes
+          // instantly on the next move). Motion is delta-time based, so speed is unchanged.
+          if (instance?.three?.renderer?.setAnimationLoop) {
+            const r = instance.three.renderer;
+            const originalLoop = r.setAnimationLoop.bind(r);
+            let lastFrame = 0;
+            r.setAnimationLoop = (cb) => originalLoop(cb ? (time, ...rest) => {
+              const now = performance.now();
+              const idle = now - lastPointerMove > 3000;
+              const minGap = idle ? 32 : 15.5;
+              if (now - lastFrame < minGap) return;
+              lastFrame = now;
+              cb(time, ...rest);
+            } : null);
+          }
 
           if (instance && instance.three) {
             const { renderer } = instance.three;
@@ -646,6 +705,10 @@ export default function App() {
     };
 
     let tubesCancelled = false;
+    // Read by the tubes frame limiter (declared with `let` above its first use at render time)
+    let lastPointerMove = performance.now();
+    const onAnyPointerMove = () => { lastPointerMove = performance.now(); };
+    window.addEventListener('pointermove', onAnyPointerMove, { passive: true });
     let tubesClickCleanup = null;
     initTubesEffect();
 
@@ -703,6 +766,7 @@ export default function App() {
       // Stop any pending init poll and ALWAYS allow a re-init (StrictMode remounts the effect while the
       // library may still be loading — previously the flag stayed set and the tubes never started).
       tubesCancelled = true;
+      window.removeEventListener('pointermove', onAnyPointerMove);
       if (heroMoveRaf) cancelAnimationFrame(heroMoveRaf);
       tubesClickCleanup?.();
       if (tubesAppRef.current) {
@@ -1567,7 +1631,7 @@ export default function App() {
                   <img
                     src={p.snap}
                     alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(30px) brightness(0.2)', opacity: 0.35 }}
+                    className="torch-img torch-img--bg"
                   />
                 </div>
 
@@ -1576,7 +1640,7 @@ export default function App() {
                   <img
                     src={p.snap}
                     alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(10px) brightness(0.75)' }}
+                    className="torch-img torch-img--reveal"
                   />
                 </div>
 
@@ -1748,7 +1812,17 @@ export default function App() {
                 transition: 'border-color 0.4s ease, background-color 0.4s ease',
                 cursor: 'none'
               }}>
-                {/* Vertical Accent Line */}
+                {/* Vertical Accent Line — the glow is a gradient strip: a blurred box-shadow inside these
+                    rounded, clipped cards cost ~60 ms of GPU raster as the section scrolled into view */}
+                <div aria-hidden="true" style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: '22%',
+                  height: '56%',
+                  width: 22,
+                  background: `linear-gradient(90deg, ${cert.color}40, ${cert.color}00)`,
+                  borderRadius: '0 100px 100px 0'
+                }} />
                 <div style={{
                   position: 'absolute',
                   left: 0,
@@ -1756,7 +1830,6 @@ export default function App() {
                   height: '50%',
                   width: 4,
                   background: cert.color,
-                  boxShadow: `0 0 15px ${cert.color}44`,
                   borderRadius: '0 100px 100px 0'
                 }} />
 

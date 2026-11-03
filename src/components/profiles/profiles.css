@@ -284,8 +284,8 @@
 
 .ag-dot.is-streak {
   stroke: var(--ag-color);
-  stroke-width: 1.2;
-  filter: drop-shadow(0 0 3px var(--ag-color));
+  stroke-width: 1.6;
+  stroke-opacity: 0.55;
 }
 
 .ag-label {
