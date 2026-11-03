@@ -110,9 +110,13 @@ export default function ContactForm({ fallbackEmail = DEFAULT_TO }) {
       setErrors({});
     } catch (err) {
       setStatus('error');
+      // Raw provider messages (e.g. FormSubmit's "This form needs Activation…") are meant for the site
+      // owner, not visitors — show a plain message and keep the mailto fallback.
       setServerMsg(err.name === 'AbortError'
         ? 'The request timed out. Check your connection and try again.'
-        : `Couldn't send right now (${err.message}).`);
+        : /activat/i.test(err.message)
+          ? 'The message service is still being set up, so this message wasn’t delivered.'
+          : 'Couldn’t send right now. Please try again in a moment.');
     } finally {
       clearTimeout(timer);
     }

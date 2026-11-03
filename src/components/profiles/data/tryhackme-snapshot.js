@@ -4,7 +4,7 @@
 //
 // To refresh: open your TryHackMe profile, update the numbers below and change `asOf`.
 export const TRYHACKME_SNAPSHOT = {
-  asOf: '2026-11-02',
+  asOf: '2026-11-03',
   profile: {
     username: 'shubh4m03',
     avatar: null,
@@ -19,8 +19,8 @@ export const TRYHACKME_SNAPSHOT = {
   rooms: 33,
   badges: 6,
   streak: null,          // current streak not shown on the public profile
-  longestStreak: 76,
+  longestStreak: 77,
   league: 'Silver',
   capability: 41,
-  yearlyEvents: 503,     // "events in the last year" from the profile's yearly-activity panel
+  yearlyEvents: 504,     // "events in the last year" from the profile's yearly-activity panel
 };

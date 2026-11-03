@@ -25,20 +25,22 @@ const toDay = (v) => {
   return Number.isNaN(d.getTime()) ? null : (/^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : d.toISOString().slice(0, 10));
 };
 
-function findArray(o, depth = 0) {
-  if (Array.isArray(o)) return o;
-  if (!o || typeof o !== 'object' || depth > 3) return null;
-  for (const v of Object.values(o)) { const a = findArray(v, depth + 1); if (a) return a; }
-  return null;
+// Collect every array of day entries anywhere in the export (supports several years merged together).
+function findArrays(o, out = [], depth = 0) {
+  if (Array.isArray(o)) { if (o.some(e => e && typeof e === 'object')) out.push(o); return out; }
+  if (o && typeof o === 'object' && depth < 5) for (const v of Object.values(o)) findArrays(v, out, depth + 1);
+  return out;
 }
 
 const counts = {};
-const arr = findArray(raw);
-if (arr) {
-  for (const e of arr) {
-    const day = toDay(e.date ?? e.day ?? e._id ?? e.timestamp ?? e.time);
-    const n = Number(e.count ?? e.events ?? e.value ?? e.total ?? e.activity ?? 0);
-    if (day && n > 0) counts[day] = (counts[day] || 0) + n;
+const arrays = findArrays(raw);
+if (arrays.length) {
+  for (const arr of arrays) {
+    for (const e of arr) {
+      const day = toDay(e.date ?? e.day ?? e._id ?? e.timestamp ?? e.time);
+      const n = Number(e.count ?? e.events ?? e.value ?? e.total ?? e.activity ?? 0);
+      if (day && n > 0) counts[day] = Math.max(counts[day] || 0, n); // max: same day may appear in two exports
+    }
   }
 } else {
   for (const [k, v] of Object.entries(raw)) { const day = toDay(k); if (day && Number(v) > 0) counts[day] = Number(v); }
