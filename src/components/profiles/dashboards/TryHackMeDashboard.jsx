@@ -3,8 +3,8 @@ import useProfileData from '../hooks/useProfileData';
 import useDashboardSync from '../hooks/useDashboardSync';
 import { Notice, Panel, Skeleton, StatTile } from '../ui';
 import { fmt } from '../utils/format';
-import ActivityGraph from '../ActivityGraph';
-import { buildDays } from '../utils/calendar';
+import ContributionSkyline from '../../ContributionSkyline/ContributionSkyline';
+import { toSkylineData } from '../utils/calendar';
 import { tryhackmeClient, HANDLES } from '../clients';
 import thmLogo from '../../../assets/logos/tryhackme.svg';
 
@@ -94,7 +94,14 @@ export default function TryHackMeDashboard({ reloadToken, onStatus }) {
       <Panel kicker="Activity" title={data.calendar ? 'Last 12 months' : 'Daily activity'}>
         {data.calendar ? (
           <>
-            <ActivityGraph days={buildDays(data.calendar.counts, 365)} color={ACCENT} unit="event" variant="full" />
+            <ContributionSkyline
+              className="cs-embedded"
+              data={toSkylineData(data.calendar.counts)}
+              endDate={data.calendar.asOf || undefined}
+              palette="tryhackme"
+              unit="event"
+              riseOnHover
+            />
             {data.calendar.asOf && <div className="pd-foot font-mono" style={{ marginTop: 10 }}>Exported from the TryHackMe profile on {data.calendar.asOf}</div>}
           </>
         ) : (

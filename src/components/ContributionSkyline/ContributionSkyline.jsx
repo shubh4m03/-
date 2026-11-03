@@ -153,6 +153,8 @@ const luminance = (c) => (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
 const PALETTES = {
   github: { light: ['#c6e48b', '#7bc96f', '#239a3b', '#196127'], dark: ['#0e4429', '#006d32', '#26a641', '#39d353'] },
   ocean: { light: ['#b8e3f5', '#6ec3eb', '#2a8fd1', '#0b4f8a'], dark: ['#0c2d4a', '#12508a', '#2a88d8', '#7cc7ff'] },
+  leetcode: { light: ['#fde7c2', '#fbbf5c', '#f59e0b', '#a85d04'], dark: ['#3a2508', '#7a4a0c', '#e08a10', '#ffbf57'] },
+  tryhackme: { light: ['#fecdd0', '#f87177', '#e8343b', '#991b1f'], dark: ['#3f1013', '#7d1d22', '#d4343b', '#ff7c82'] },
   // This site's blue-on-black theme (dark) and blue-on-white theme (light)
   portfolio: { light: ['#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'], dark: ['#10294a', '#1d4f91', '#3b82f6', '#93c5fd'] },
 };
@@ -294,6 +296,9 @@ export default function ContributionSkyline({
   footer,
   locale = 'en-US',
   onCellClick,
+  // Portfolio addition: stay flat, and rise into 3D only while a mouse hovers the chart
+  // (falls back to the 2D/3D toggle on touch screens, which have no hover).
+  riseOnHover = false,
   className = '',
 }) {
   const endKey = endDate == null ? null : dayMs(endDate);
@@ -305,7 +310,7 @@ export default function ContributionSkyline({
     return { ...grid, stats: computeStats(grid.cells), months: monthLabels(grid.cells, grid.weeks, locale) };
   }, [data, endKey, weekStart, locale]);
 
-  const [innerView, setInnerView] = React.useState(defaultView);
+  const [innerView, setInnerView] = React.useState(riseOnHover ? '2d' : defaultView);
   const view = viewProp ?? innerView;
   const setView = (v) => {
     if (viewProp === undefined) setInnerView(v);
@@ -1007,12 +1012,20 @@ export default function ContributionSkyline({
   const ease = 'cubic-bezier(0.65, 0, 0.35, 1)';
   const levelNames = ['No ' + plural, 'Light', 'Moderate', 'Heavy', 'Heaviest'];
 
-  const hints = ['Hover a day for details · arrow keys to explore', 'Drag to orbit · double-click to reset'];
+  const hints = riseOnHover
+    ? ['Hover to raise the 3D skyline · hover a day for details', 'Drag to orbit · double-click to reset']
+    : ['Hover a day for details · arrow keys to explore', 'Drag to orbit · double-click to reset'];
   const hint = hints[is3d && orbit ? 1 : 0];
+  const hoverProps = riseOnHover && viewProp === undefined
+    ? {
+      onPointerEnter: (e) => { if (e.pointerType === 'mouse') setView('3d'); },
+      onPointerLeave: (e) => { if (e.pointerType === 'mouse') setView('2d'); },
+    }
+    : {};
   const activeCell = active >= 0 ? model.cells[active] : null;
 
   return (
-    <section ref={rootRef} className={'cs-root ' + className}>
+    <section ref={rootRef} className={'cs-root ' + className} {...hoverProps}>
       <header className="cs-header">
         <h3 className="cs-title">
           {title ?? (

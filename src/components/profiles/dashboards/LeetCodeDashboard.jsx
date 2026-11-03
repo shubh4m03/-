@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import ActivityGraph from '../ActivityGraph';
+import ContributionSkyline from '../../ContributionSkyline/ContributionSkyline';
 import YearTabs from '../YearTabs';
 import useProfileData from '../hooks/useProfileData';
 import useDashboardSync from '../hooks/useDashboardSync';
 import { Bar, ErrorState, Notice, Panel, Ring, Skeleton, StatTile } from '../ui';
-import { allTimeDays, computeStreaks, daysForView } from '../utils/calendar';
+import { allTimeDays, computeStreaks, daysForView, skylineEndFor, toSkylineData } from '../utils/calendar';
 import { fmt, timeAgo } from '../utils/format';
 import { leetcodeClient, HANDLES } from '../clients';
 import leetcodeLogo from '../../../assets/logos/leetcode.svg';
@@ -20,7 +20,7 @@ export default function LeetCodeDashboard({ reloadToken, onStatus }) {
   const [view, setView] = useState('last');
 
   const counts = data?.calendar?.counts;
-  const days = useMemo(() => (counts ? daysForView(counts, view) : null), [counts, view]);
+  const skylineData = useMemo(() => toSkylineData(counts), [counts]);
   const lastYear = useMemo(() => (counts ? computeStreaks(daysForView(counts, 'last')) : null), [counts]);
   const lifetime = useMemo(() => (counts ? computeStreaks(allTimeDays(counts)) : null), [counts]);
 
@@ -93,7 +93,19 @@ export default function LeetCodeDashboard({ reloadToken, onStatus }) {
       </div>
 
       <Panel kicker="Submission activity" title={view === 'last' ? 'Last 12 months' : `${view}`} aside={views.length > 1 && <YearTabs views={views} value={view} onChange={setView} />}>
-        {days && <ActivityGraph days={days} color={ACCENT} unit="submission" variant="full" />}
+        {skylineData && (
+          <ContributionSkyline
+            className="cs-embedded"
+            data={skylineData}
+            endDate={skylineEndFor(view)}
+            palette="leetcode"
+            unit="submission"
+            riseOnHover
+            title={view === 'last' ? undefined : (
+              <><span className="cs-strong">{fmt(skylineData.filter(d => d.date.startsWith(`${view}-`)).reduce((s, d) => s + d.count, 0))}</span> submissions in {view}</>
+            )}
+          />
+        )}
       </Panel>
 
       <div className="pd-two">

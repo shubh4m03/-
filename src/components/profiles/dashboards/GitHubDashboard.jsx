@@ -5,7 +5,7 @@ import YearTabs from '../YearTabs';
 import useProfileData from '../hooks/useProfileData';
 import useDashboardSync from '../hooks/useDashboardSync';
 import { ErrorState, Notice, Panel, Skeleton, StatTile } from '../ui';
-import { allTimeDays, computeStreaks, daysForView, todayKeyUTC } from '../utils/calendar';
+import { allTimeDays, computeStreaks, daysForView, skylineEndFor, toSkylineData } from '../utils/calendar';
 import { fmt, LANG_COLORS, timeAgo } from '../utils/format';
 import { githubClient } from '../clients';
 
@@ -19,12 +19,7 @@ export default function GitHubDashboard({ reloadToken, onStatus }) {
 
   const counts = data?.calendar?.counts;
   // Real contribution days for the skyline (never the component's generated demo year)
-  const skylineData = useMemo(
-    () => (counts ? Object.entries(counts).map(([date, count]) => ({ date, count })) : null),
-    [counts],
-  );
-  const today = todayKeyUTC();
-  const skylineEnd = view === 'last' ? today : (`${view}-12-31` > today ? today : `${view}-12-31`);
+  const skylineData = useMemo(() => toSkylineData(counts), [counts]);
   const lastYear = useMemo(() => (counts ? computeStreaks(daysForView(counts, 'last')) : null), [counts]);
   const lifetime = useMemo(() => (counts ? computeStreaks(allTimeDays(counts)) : null), [counts]);
 
@@ -69,8 +64,9 @@ export default function GitHubDashboard({ reloadToken, onStatus }) {
           <ContributionSkyline
             className="cs-embedded"
             data={skylineData}
-            endDate={skylineEnd}
+            endDate={skylineEndFor(view)}
             palette="portfolio"
+            riseOnHover
             title={view === 'last' ? undefined : (
               <><span className="cs-strong">{fmt(calendar?.byYear?.find(y => y.year === view)?.total ?? 0)}</span> contributions in {view}</>
             )}

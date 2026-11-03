@@ -160,3 +160,18 @@ export function formatDay(key) {
 export function sumLast(days, n) {
   return days.slice(-n).reduce((s, d) => s + d.count, 0);
 }
+
+/** Day counts (Map or { 'YYYY-MM-DD': n }) → [{ date, count }] for the Contribution Skyline. */
+export function toSkylineData(counts) {
+  if (!counts) return null;
+  const entries = counts instanceof Map ? [...counts.entries()] : Object.entries(counts);
+  return entries.map(([date, count]) => ({ date, count: Number(count) || 0 }));
+}
+
+/** Last day the skyline shows for a view: today for 'last', else Dec 31 of that year (capped at today). */
+export function skylineEndFor(view) {
+  const today = todayKeyUTC();
+  if (view === 'last') return today;
+  const end = `${view}-12-31`;
+  return end > today ? today : end;
+}
