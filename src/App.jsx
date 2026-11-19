@@ -13,6 +13,7 @@ import ProjectLike from './components/likes/ProjectLike';
 import RepoStar from './components/likes/RepoStar';
 // DEMO: hero background (loaded lazily so it never delays first paint)
 const GhostFibers = lazy(() => import('./components/GhostFibers/GhostFibers'));
+const ContactAnimals = lazy(() => import('./components/AsciiAnimals/ContactAnimals'));
 import { Github, Linkedin, Mail, Phone, ExternalLink, Zap, Home, User, Code, Trophy, Briefcase, Play, FileText, Sun, Moon, Lock, Check } from 'lucide-react';
 import shiftpinSnap from './assets/projects/shiftpin.svg';
 import prepgenieSnap from './assets/projects/prepgenie.svg';
@@ -1917,6 +1918,7 @@ export default function App() {
 
         {/* ═══════════ CONTACT — message form ═══════════ */}
         <section id="contact" className="contact-section">
+          <Suspense fallback={null}><ContactAnimals theme={theme} /></Suspense>
           <div className="section-watermark" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>PING</div>
           <div className="contact-inner">
             <div className="contact-intro">
